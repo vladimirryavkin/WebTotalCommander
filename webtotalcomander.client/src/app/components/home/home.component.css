@@ -1,0 +1,49 @@
+.kendo-combobox {
+  width: 200px;
+
+}
+
+.kendo-textbox-custom {
+  width: 400px;
+  background-color: rgb(250, 250, 250);
+
+}
+
+.k-loading-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.k-loading-panel-mask {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #000000;
+  opacity: 0.8;
+  z-index: 2;
+}
+
+.k-loading-panel-wrapper {
+  position: relative;
+  z-index: 2;
+}
+
+.k-loading-panel-text {
+  margin-top: 20px;
+  text-align: center;
+  color: #ffffff;
+  z-index: 2;
+}
+
+.selected-files-modal {
+  z-index: 1;
+}

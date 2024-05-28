@@ -1,0 +1,169 @@
+<div class="container">
+
+  <div class="mt-2">
+    <h1 style="border-bottom: 3px solid rgba(74, 70, 70, 0.408);">File Manager</h1>
+  </div>
+
+
+  <div class="row mt-4">
+    <div class="col"></div>
+    <div class="col">
+      <div class="d-flex align-items-center justify-content-center">
+        <kendo-floatinglabel text="Folder Name">
+          <kendo-textbox class="kendo-textbox-custom" [size]="size" [clearButton]="true" [(ngModel)]="folderName">
+            <ng-template kendoTextBoxSuffixTemplate>
+              <button kendoButton fillMode="clear" size="large" [fillMode]="fillMode" [svgIcon]="addFolderSVG"
+                (click)="addFolder()">Create</button>
+            </ng-template>
+          </kendo-textbox>
+        </kendo-floatinglabel>
+      </div>
+    </div>
+    <div class="col">
+      <div class="mt-3 d-flex align-items-center justify-content-center">
+        <kendo-fileselect [(ngModel)]="mySelectedFiles" [showFileList]="false"
+          (valueChange)="valueChange()"></kendo-fileselect>
+      </div>
+    </div>
+    <div class="col"></div>
+  </div>
+
+
+
+  <div class="mt-3 text-center">
+    <h4>
+      <span *ngFor="let path1 of pathes; let i = index" (click)="getIndex(i)">{{
+        path1
+        }}</span>
+    </h4>
+  </div>
+
+  <div class="d-flex justify-content-start mt-2 btn-group">
+    <kendo-buttongroup>
+      <button kendoButton [toggleable]="false" [svgIcon]="upSVG" [fillMode]="fillMode" (click)="goUp()"></button>
+      <button kendoButton [toggleable]="false" [svgIcon]="leftSVG" [fillMode]="fillMode" (click)="goBack()"></button>
+      <button kendoButton [toggleable]="false" [svgIcon]="rightSVG" [fillMode]="fillMode"
+        (click)="goForward()"></button>
+    </kendo-buttongroup>
+  </div>
+
+  <div class="mt-1 text-center">
+    <kendo-grid [data]="foldersView" [pageSize]="query.pagination.take" [skip]="query.pagination.skip" [pageable]="{
+      buttonCount: buttonCount,
+      info: info,
+      type: type,
+      pageSizes: pageSizes,
+      previousNext: previousNext,
+      position: position
+    }" [sortable]="true" [sort]="sort" filterable="menu" [filter]="gridState.filter"
+      (cellClick)="cellClickHandler($event)" (dataStateChange)="itemsDataStateChange($event)">
+
+      <kendo-grid-column field="fileName" title="Name" [sortable]="true">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <kendo-svgicon [icon]="getIconForExtension(dataItem.fileExtension)"></kendo-svgicon>
+          {{ dataItem.fileName }}
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="fileCreationTime" title="Date">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          {{ dataItem.fileCreationTime | date : "yyyy-MM-dd HH:mm:ss" }}
+        </ng-template>
+        <ng-template kendoGridFilterMenuTemplate let-filter let-column="column" let-filterService="filterService">
+          <kendo-grid-date-filter-menu [column]="column" [filter]="filter" [filterService]="filterService">
+            <kendo-filter-eq-operator></kendo-filter-eq-operator>
+            <kendo-filter-neq-operator></kendo-filter-neq-operator>
+            <kendo-filter-gte-operator></kendo-filter-gte-operator>
+            <kendo-filter-gt-operator></kendo-filter-gt-operator>
+            <kendo-filter-lte-operator></kendo-filter-lte-operator>
+            <kendo-filter-lt-operator></kendo-filter-lt-operator>
+          </kendo-grid-date-filter-menu>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="fileExtension" title="Type"></kendo-grid-column>
+      <kendo-grid-column field="size" title="Size (Kb)" [filterable]="false"></kendo-grid-column>
+
+      <kendo-grid-column title="Action">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <ng-container *ngIf="dataItem.fileExtension === '.txt'">
+            <button kendoGridRemoveCommand [fillMode]="fillMode" [svgIcon]="trashSVG" class="me-4"
+              (click)="delete(dataItem)">
+              Delete
+            </button>
+            <button kendoGridEditCommand [fillMode]="fillMode" [svgIcon]="editFileSVG" class="me-4"
+              (click)="getTextOfFile(dataItem)">
+              Edit
+            </button>
+            <textarea *ngIf="dataItem.isEditing" [(ngModel)]="dataItem.fileContent" rows="10" cols="50"></textarea>
+          </ng-container>
+          <ng-container *ngIf="dataItem.fileExtension === 'folder'">
+            <button kendoGridRemoveCommand [fillMode]="fillMode" [svgIcon]="trashSVG" class="me-4"
+              (click)="delete(dataItem)">
+              Delete
+            </button>
+            <button kendoGridRemoveCommand [fillMode]="fillMode" [svgIcon]="downloadSVG"
+              (click)="downloadAsZip(dataItem.fileName)" class="me-4">
+              Zip
+            </button>
+          </ng-container>
+          <ng-container *ngIf="
+              dataItem.fileExtension !== '.txt' &&
+              dataItem.fileExtension !== 'folder' && dataItem.fileExtension !== ''
+            ">
+            <button kendoGridRemoveCommand [fillMode]="fillMode" [svgIcon]="trashSVG" class="me-4"
+              (click)="delete(dataItem)">
+              Delete
+            </button>
+          </ng-container>
+        </ng-template>
+      </kendo-grid-column>
+    </kendo-grid>
+  </div>
+
+  <div>
+    <div>
+      <kendo-dialog *ngIf="opened" autoFocusedElement="#username" title="Edit file" (close)="closeEditModal('cancel')"
+        [minWidth]="850" [width]="850" [height]="600">
+        <div style="margin: 50px; text-align: center">
+          <p>Text</p>
+
+          <textarea rows="20" cols="120" kendoTextBox id="username" [placeholder]="fileContent" [style.width.px]="700"
+            [value]="fileContent" [(ngModel)]="editedFileContent"></textarea>
+        </div>
+        <kendo-dialog-actions>
+          <button kendoButton [fillMode]="fillMode" [svgIcon]="saveEditedFileSVG"
+            (click)="closeEditModal('save')">Save</button>
+          <button kendoButton [fillMode]="fillMode" [svgIcon]="rejectEditFileSVG"
+            (click)="closeEditModal('no')">No</button>
+        </kendo-dialog-actions>
+      </kendo-dialog>
+    </div>
+  </div>
+
+
+  <div class="k-loading-panel" *ngIf="isLoading">
+    <div class="k-loading-panel-mask"></div>
+    <div class="k-loading-panel-wrapper">
+      <kendo-loader type="infinite-spinner" themeColor="primary" size="large">
+      </kendo-loader>
+      <div class="k-loading-panel-text">Loading...</div>
+    </div>
+  </div>
+
+  <div>
+    <kendo-dialog title="Selected files" class="selected-files-modal" *ngIf="selectModalVisible"
+      (close)="closeSelectModal()" [minWidth]="250" [width]="800" [themeColor]="dialogThemeColor">
+      <div>
+        <kendo-fileselect [(ngModel)]="mySelectedFiles" name="salom" (valueChange)="valueChange()"></kendo-fileselect>
+        <div class="mt-1">
+          <button kendoButton size="medium" [fillMode]="fillMode" [svgIcon]="uploadSVG" (click)="uploadFiles()"
+            class="me-1">Upload</button>
+          <button kendoButton size="medium" [fillMode]="fillMode" [svgIcon]="clearSVG"
+            (click)="clearFiles()">Clear</button>
+        </div>
+      </div>
+    </kendo-dialog>
+  </div>
+
+</div>
