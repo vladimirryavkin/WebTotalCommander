@@ -7,11 +7,13 @@ public class AzureFileRepository : IFileRepository
 {
     private static string azureContainer;
     private readonly BlobServiceClient _blobServiceClient;
+
     public AzureFileRepository(AzureSettings azureSettings)
     {
         azureContainer = azureSettings.AzureContainer;
         _blobServiceClient = new BlobServiceClient(azureSettings.AzureConnection);
     }
+
     public async Task<bool> SaveFileAsync(Stream stream, string fileName, string path)
     {
         var blobContainerClient = _blobServiceClient.GetBlobContainerClient(azureContainer);

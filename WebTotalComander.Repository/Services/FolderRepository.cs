@@ -1,4 +1,4 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using WebTotalComander.Repository.Models;
 namespace WebTotalComander.Repository.Services;
 
@@ -107,17 +107,16 @@ public class FolderRepository : IFolderRepository
         foreach (var subFolder in Directory.GetDirectories(sourceFolder))
         {
             var entryName = Path.Combine(entryPrefix, Path.GetFileName(subFolder) + "/");
-            var entry = archive.CreateEntry(entryName);
-
+            archive.CreateEntry(entryName);
             await ZipFolder(subFolder, archive, entryName);
         }
     }
 
-    public async Task<long> CalculateDirectorySizeAsync(string directoryPath)
+    private async Task<long> CalculateDirectorySizeAsync(string directoryPath)
     {
         var files = Directory.GetFiles(directoryPath);
 
-        long totalSize = 0;
+        var totalSize = 0L;
         foreach (var file in files)
         {
             totalSize += new FileInfo(file).Length;
